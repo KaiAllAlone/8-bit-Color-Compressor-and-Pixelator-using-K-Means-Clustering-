@@ -47,11 +47,11 @@ def pixelate(res,scale):
     return res
   
 
-def main(input_path,output_path, k=8):    
+def main(input_path,output_path, k):    
     orig = cv.imread(input_path)
     res=orig
     res=whole(res,k)
     # res= cv.bilateralFilter(res,d=9,sigmaColor=100,sigmaSpace=75)
-    res=pixelate(res,1.5) 
+    res=pixelate(res,k) 
     cv.imwrite(output_path,res)
     print(f"Final image stored at {output_path}")
