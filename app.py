@@ -1,23 +1,12 @@
-from flask import Flask, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import tempfile, os
 from main import main
 
 app = Flask(__name__)
 
 @app.route('/')
-def home():
-    """
-    Displays a simple HTML upload form.
-    """
-    return '''
-    <h2>8-Bit Image Compressor</h2>
-    <form action="/compress" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required><br><br>
-        <label>Number of colors (k):</label>
-        <input type="number" name="k" value="8" min="2" max="64"><br><br>
-        <button type="submit">Compress</button>
-    </form>
-            '''
+def index():
+    return render_template('index.html')
 
 @app.route('/compress', methods=['POST'])
 def compress():
@@ -27,16 +16,15 @@ def compress():
     # Get uploaded image
     file = request.files['image']
     k = int(request.form.get('k', 8))
-
+    s=  int(request.form.get('s', 8))
     # Create temporary input/output files
     temp_in = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
     temp_out = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
 
     # Save upload to temp_in
     file.save(temp_in.name)
-
     # Run compression
-    main(temp_in.name, temp_out.name, k)
+    main(temp_in.name, temp_out.name,k, s)
 
     # Return the resulting image
     return send_file(temp_out.name, mimetype='image/png')
