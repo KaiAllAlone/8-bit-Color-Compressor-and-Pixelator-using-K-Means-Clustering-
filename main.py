@@ -37,7 +37,7 @@ def dithering_rgb(img):
                         
     return (np.clip(out, 0, 1) * 255).astype(np.uint8)
 
-def whole(image,k=32):
+def whole(image,k):
     comp_img=bit_compressor(k,image)
     return comp_img
 def pixelate(res,scale):
@@ -50,8 +50,8 @@ def pixelate(res,scale):
 def main(input_path,output_path, k=8):    
     orig = cv.imread(input_path)
     res=orig
-    res=whole(res,32)
-    res= cv.bilateralFilter(res,d=9,sigmaColor=100,sigmaSpace=75)
-    res=pixelate(res,3) 
+    res=whole(res,k)
+    # res= cv.bilateralFilter(res,d=9,sigmaColor=100,sigmaSpace=75)
+    res=pixelate(res,1.5) 
     cv.imwrite(output_path,res)
     print(f"Final image stored at {output_path}")
