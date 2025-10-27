@@ -46,36 +46,14 @@ def pixelate(res,scale):
     res= cv.resize(res, (res.shape[1]*scale,res.shape[0]*scale), interpolation=cv.INTER_NEAREST)
     return res
   
-  
-if __name__ == "__main__":
-    
-    print(f"Attempting to read image from:{os.path.abspath(path)}")
-    orig = cv.imread(path)
-    if orig is None:
-        print(f"Error: Could not read image at {path}")
-        sys.exit(1)
-    print(f"Successfully read image with shape: {orig.shape}")
-    # Save and show original
-    cv.imwrite('Original.png',orig)
-    cv.imshow('Original',orig)
-    print("Processing image...")
-    # Using separate channel compression for better quality
-    # res=whole(path)
+
+def main(input_path,output_path, k=8):    
+    orig = cv.imread(input_path)
     res=orig
-    # res=dithering_rgb(res)
     res=whole(res,32)
     res= cv.bilateralFilter(res,d=9,sigmaColor=100,sigmaSpace=75)
-    res=pixelate(res,3)
-    if res is None:
-        print("Error: Could not read compressed result")
-        sys.exit(1)  
-    cv.imwrite('Compressed.png',res)
+    res=pixelate(res,3) 
+    cv.imwrite(output_path,res)
     print(f"Compressed image shape:{res.shape}")
-    # Post-processing
-    # res = cv.dilate(res,(3,3))
-    # res = cv.erode(res,(3,3))
-    # Save and show result
     cv.imshow('Result',res)
-    print("Press any key to close the windows...")
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+    print(f"Final image stored at {output_path}")
