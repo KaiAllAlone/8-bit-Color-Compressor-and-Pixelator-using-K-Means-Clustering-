@@ -1,6 +1,5 @@
 import sklearn
 from sklearn.cluster import KMeans
-import pandas as pd
 import numpy as np
 import cv2 as cv
 import sys
