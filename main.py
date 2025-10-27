@@ -54,6 +54,4 @@ def main(input_path,output_path, k=8):
     res= cv.bilateralFilter(res,d=9,sigmaColor=100,sigmaSpace=75)
     res=pixelate(res,3) 
     cv.imwrite(output_path,res)
-    print(f"Compressed image shape:{res.shape}")
-    cv.imshow('Result',res)
     print(f"Final image stored at {output_path}")
