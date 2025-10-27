@@ -17,7 +17,7 @@ def home():
         <input type="number" name="k" value="8" min="2" max="64"><br><br>
         <button type="submit">Compress</button>
     </form>
-    '''
+            '''
 
 @app.route('/compress', methods=['POST'])
 def compress():
