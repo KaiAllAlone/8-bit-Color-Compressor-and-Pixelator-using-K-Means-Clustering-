@@ -2,9 +2,45 @@ import sklearn
 from sklearn.cluster import KMeans
 import numpy as np
 import cv2 as cv
-import sys
-import os
-path = r'Programs\Python\pine-watt-2Hzmz15wGik-unsplash.jpg'
+import tempfile
+from PIL import Image, ImageOps
+
+# -------------------------------
+# Helper Functions
+# -------------------------------
+
+def convert_to_supported_format(file):
+    """Converts HEIC or unsupported formats to JPEG."""
+    img = Image.open(file)
+    temp_jpeg = tempfile.NamedTemporaryFile(delete=False, suffix=".jpeg")
+    rgb_img = img.convert("RGB")
+    rgb_img.save(temp_jpeg.name, "JPEG")
+    return temp_jpeg.name
+
+def fix_orientation(path):
+    """Fix EXIF orientation from phone cameras."""
+    try:
+        img = Image.open(path)
+        img = ImageOps.exif_transpose(img)
+        img.save(path)
+    except Exception:
+        pass  # Skip if no EXIF data
+
+def resize_if_large(path, max_dim=2000):
+    """Resizes image if it's too large (to prevent memory issues)."""
+    img = cv.imread(path)
+    if img is None:
+        return
+    h, w = img.shape[:2]
+    if max(h, w) > max_dim:
+        scale = max_dim / max(h, w)
+        img = cv.resize(img, (int(w * scale), int(h * scale)))
+        cv.imwrite(path, img)
+
+# -------------------------------
+# Core Compression Logic
+# -------------------------------
+
 def bit_compressor(k, image):
     h, w, c = image.shape
     flat_img = image.reshape((-1, 3))  # RGB pixels
@@ -16,42 +52,25 @@ def bit_compressor(k, image):
 
     compressed_flat = centers[labels]
     compressed_img = compressed_flat.reshape((h, w, 3))
-
     return compressed_img
 
-def dithering_rgb(img):
-    img = img.astype(np.float32) / 255
-    height, width, channels = img.shape
-    out = np.copy(img)
-    for y in range(height):
-        for x in range(width):
-            for c in range(channels):
-                old_pixel = out[y, x, c]
-                new_pixel = 1.0 if old_pixel > 0.5 else 0.0
-                out[y, x, c] = new_pixel
-                error = old_pixel - new_pixel
-                for dx, dy, factor in [(1, 0, 0.5), (0, 1, 0.25), (1, 1, 0.25)]:
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < width and 0 <= ny < height:
-                        out[ny, nx, c] += error * factor
-                        
-    return (np.clip(out, 0, 1) * 255).astype(np.uint8)
-
-def whole(image,k):
-    comp_img=bit_compressor(k,image)
-    return comp_img
-def pixelate(res,scale=3):
-    res = cv.resize(res, (res.shape[1]//scale,res.shape[0]//scale), interpolation=cv.INTER_LINEAR)
-    # Upscale back to original size (pixelated)
-    res= cv.resize(res, (res.shape[1]*scale,res.shape[0]*scale), interpolation=cv.INTER_NEAREST)
+def pixelate(res, scale=3):
+    res = cv.resize(res, (res.shape[1] // scale, res.shape[0] // scale), interpolation=cv.INTER_LINEAR)
+    res = cv.resize(res, (res.shape[1] * scale, res.shape[0] * scale), interpolation=cv.INTER_NEAREST)
     return res
-  
 
-def main(input_path,output_path, k, scale):    
+def whole(image, k):
+    return bit_compressor(k, image)
+
+def main(input_path, output_path, k, scale):
+    fix_orientation(input_path)
+    resize_if_large(input_path)
+
     orig = cv.imread(input_path)
-    res=orig
-    res=whole(res,k)
-    # res= cv.bilateralFilter(res,d=9,sigmaColor=100,sigmaSpace=75)
-    res=pixelate(res,scale) 
-    cv.imwrite(output_path,res)
+    if orig is None:
+        raise ValueError("Could not read input image — possibly unsupported format.")
+
+    res = whole(orig, k)
+    res = pixelate(res, scale)
+    cv.imwrite(output_path, res)
     print(f"Final image stored at {output_path}")

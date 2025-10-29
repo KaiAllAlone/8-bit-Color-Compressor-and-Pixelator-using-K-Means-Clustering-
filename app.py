@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file
 import tempfile, os
-from main import main
+from main import main, convert_to_supported_format
 
 app = Flask(__name__)
 
@@ -10,40 +10,32 @@ def index():
 
 @app.route('/compress', methods=['POST'])
 def compress():
-    """
-    Handles image uploads, runs compression, and returns the processed image.
-    """
-    # Get uploaded image
     file = request.files['image']
     filename = file.filename
-    ext = os.path.splitext(filename)[1].lower() 
+    ext = os.path.splitext(filename)[1].lower()
 
-    # Default to .png if unknown
-    if ext not in [".png", ".jpg", ".jpeg",".webp"]:
-        ext = ".png"
+    # Convert unsupported files (like HEIC → JPEG)
+    try:
+        input_path = convert_to_supported_format(file)
+        ext = ".jpeg"
+    except Exception:
+        temp_in = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+        file.save(temp_in.name)
+        input_path = temp_in.name
 
     k = int(request.form.get('k', 8))
     s = int(request.form.get('s', 8))
 
-    # Create temp files with the same extension
-    temp_in = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
     temp_out = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+    main(input_path, temp_out.name, k, s)
 
-    # Save upload
-    file.save(temp_in.name)
-
-    # Run your compression logic
-    main(temp_in.name, temp_out.name, k, s)
-
-    # Determine correct MIME type
     mime_type = {
         ".png": "image/png",
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
-        ".webp":  "image/webp"
+        ".webp": "image/webp"
     }.get(ext, "application/octet-stream")
 
-    # Return the processed file
     return send_file(temp_out.name, mimetype=mime_type)
 
 if __name__ == '__main__':
