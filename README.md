@@ -57,6 +57,13 @@ path = r"Programs\\Python\\pine-watt-2Hzmz15wGik-unsplash.jpg"
 
 If you are running in a headless environment (no GUI), comment out the `cv.imshow(...)` lines and rely on the saved files (`Original.png`, `Compressed.png`).
 
+**OR**
+
+Run the Web Application
+@
+
+<a href="https://eight-bit-color-compressor-and-pixelator.onrender.com"> Image Pixelator </a>
+
 ---
 
 ## 🔧 Configuration Highlights
