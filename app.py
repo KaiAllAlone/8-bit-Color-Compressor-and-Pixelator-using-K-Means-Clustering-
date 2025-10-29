@@ -15,21 +15,36 @@ def compress():
     """
     # Get uploaded image
     file = request.files['image']
+    filename = file.filename
+    ext = os.path.splitext(filename)[1].lower() 
+
+    # Default to .png if unknown
+    if ext not in [".png", ".jpg", ".jpeg",".webp"]:
+        ext = ".png"
+
     k = int(request.form.get('k', 8))
-    s=  int(request.form.get('s', 8))
-    # Create temporary input/output files
-    temp_in = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-    temp_out = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+    s = int(request.form.get('s', 8))
 
-    # Save upload to temp_in
+    # Create temp files with the same extension
+    temp_in = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+    temp_out = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+
+    # Save upload
     file.save(temp_in.name)
-    # Run compression
-    main(temp_in.name, temp_out.name,k, s)
 
-    # Return the resulting image
-    return send_file(temp_out.name, mimetype='image/png')
+    # Run your compression logic
+    main(temp_in.name, temp_out.name, k, s)
 
-import os
+    # Determine correct MIME type
+    mime_type = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp":  "image/webp"
+    }.get(ext, "application/octet-stream")
+
+    # Return the processed file
+    return send_file(temp_out.name, mimetype=mime_type)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))

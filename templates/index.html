@@ -2,41 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🎨 8-Bit Color Compressor</title>
-  <link rel="stylesheet" href="static/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Image Pixelator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
-    <h1 class="fade-in">🎨 8-Bit Color Compressor</h1>
+    <h1 class="fade-in">Image Pixelator</h1>
+
     <form id="uploadForm" enctype="multipart/form-data" class="fade-in delay-1">
       <label class="file-label">
         <input type="file" name="image" id="imageInput" accept="image/*" required>
         Choose an image
       </label>
+
       <div class="slider">
         <label>Colors (K): <span id="kValue">8</span></label>
-        <input type="range" name="k" id="kInput" min="2" max="64" value="8">
+        <div class="slider-control">
+          <button type="button" class="dec-btn" id="decK">-</button>
+          <input type="range" name="k" id="kInput" min="2" max="64" value="8">
+          <button type="button" class="inc-btn" id="incK">+</button>
+        </div>
       </div>
+
       <div class="slider">
         <label>Scale (S): <span id="sValue">3</span></label>
-        <input type="range" name="s" id="sInput" min="1" max="10" value="3">
+        <div class="slider-control">
+          <button type="button" class="dec-btn" id="decS">-</button>
+          <input type="range" name="s" id="sInput" min="1" max="10" value="3">
+          <button type="button" class="inc-btn" id="incS">+</button>
+        </div>
       </div>
-      <button type="submit" class="btn">Compress</button>
+
+      <button type="submit" class="btn">Go!</button>
     </form>
 
+<!-- Spinner -->
+    <div id="spinner" class="hidden fade-in delay-2">
+      <div class="loader"></div>
+      <p>Processing...</p>
+    </div>
+
+    <!-- Previews -->
     <div id="previewContainer" class="fade-in delay-2">
       <div class="preview">
         <img id="originalImg" src="" alt="Original">
         <p>Original</p>
       </div>
       <div class="preview">
-        <img id="processedImg" src="" alt="Processed">
+        <img id="processedImg" src="" alt="Compressed">
         <p>Compressed</p>
       </div>
     </div>
   </div>
 
-  <script src="static/script.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
